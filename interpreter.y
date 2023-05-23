@@ -55,7 +55,7 @@ char* deleteAll(char* string, char* substring);
 %left '*' '/'
 %nonassoc UMINUS
 
-%type <nPtr> statement expr stmt_list assignment_stmt case_statements case_statement case_expr default_stmt char_expr
+%type <nPtr> statement expr stmt_list assignment_stmt case_statements case_statement case_expr default_stmt char_expr array_exp
 
 %start      program
 
@@ -67,7 +67,14 @@ program   : function '.'          { exit(0); }
 function  : function statement    { ex($2);freeNode($2); }
           | /* NULL */
           ;
- 
+
+/*array_  : '{' array '}'
+
+
+array: array INTEGER
+      | 
+      ;
+ */
 statement : ';'                   { $$ = opr(';', 2, NULL, NULL); }
           | expr ';'              { $$ = $1; }
           | PRINT expr ';'        { $$ = opr(PRINT, 1, $2); }
@@ -80,10 +87,10 @@ statement : ';'                   { $$ = opr(';', 2, NULL, NULL); }
           | MAX '(' VARIABLE ')' ';' {$$ = opr(MAX, 1, id($3));}
           | MIN '(' VARIABLE ')' ';' {$$ = opr(MIN, 1, id($3));}
           | LENGTH '(' VARIABLE ')' ';' {$$ = opr(LENGTH, 1, id($3));}
-          | SEARCH '(' VARIABLE ',' INTEGER ')' ';' {$$ = opr(SEARCH, 2, id($3),con($5));}
-          | INSERTFIRST '(' VARIABLE ',' INTEGER ')' ';' {$$ = opr(INSERTFIRST, 2, id($3),con($5));}
-          | INSERTLAST '(' VARIABLE ',' INTEGER ')' ';' {$$ = opr(INSERTLAST, 2, id($3),con($5));}
-          | DELETE '(' VARIABLE ',' INTEGER ')' ';' {$$ = opr(DELETE, 2, id($3),con($5));}
+          | SEARCH '(' VARIABLE ',' array_exp ')' ';' {$$ = opr(SEARCH, 2, id($3),$5);}
+          | INSERTFIRST '(' VARIABLE ',' array_exp ')' ';' {$$ = opr(INSERTFIRST, 2, id($3),$5);}
+          | INSERTLAST '(' VARIABLE ',' array_exp ')' ';' {$$ = opr(INSERTLAST, 2, id($3),$5);}
+          | DELETE '(' VARIABLE ',' array_exp ')' ';' {$$ = opr(DELETE, 2, id($3),$5);}
           | COPY '(' VARIABLE ',' char_expr ')' ';' {$$ = opr(COPY, 2, id($3),$5);}
           | COMPARE '(' char_expr ',' char_expr ')' ';' {$$ = opr(COMPARE, 2, $3,$5);}
           | CONTAINS '(' VARIABLE ',' char_expr ')' ';' {$$ = opr(CONTAINS, 2, id($3),$5);}
@@ -125,7 +132,9 @@ case_expr : FLOAT                 { $$ = conFloat($1);}
           | INTEGER               { $$ = con($1); }
           | CHAR                  { $$ = conChar($1);}
 char_expr : CHAR                  { $$ = conChar($1);}
-          | VARIABLE              { $$ = id($1); }         
+          | VARIABLE              { $$ = id($1); }   
+array_exp : INTEGER               { $$ = con($1); }
+          | VARIABLE              { $$ = id($1); } 
 
 expr      : FLOAT                 { $$ = conFloat($1);}
           | INTEGER               { $$ = con($1); }
@@ -459,7 +468,12 @@ type_ ex(nodeType *p)
                         printf("%d, ",op1.aVal[i]);
                         
                       }
+                      if(k!=0){
                       printf("%d\n", op1.aVal[k-1]);
+                      }
+                      else{
+                        printf("{}\n");
+                      }
                      }
                      else{
                       printf("%s\n", ex(p->opr.op[0]).cVal); 

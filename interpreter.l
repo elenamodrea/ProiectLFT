@@ -19,8 +19,12 @@
                   yylval.floatValue = atof(yytext);
                    return FLOAT; 
                 }
-[\{]([0-9]+[\,]?)+[\}] {
+[\{]([0-9]+[\,]?)*[\}] {
                        char*s= yytext+1;
+                       if(strlen(s)==2){
+                        yylval.aValue = calloc(100, sizeof(int));
+                       }
+                       else{
                        s[strlen(s)-1]='\0';
                        char*p=strtok(s,",");
                        int* rez=calloc(100,sizeof(int));
@@ -32,13 +36,14 @@
                        }
                        yylval.aValue = calloc(100, sizeof(int));
                        yylval.aValue = rez;
+                       }
                        return ARRAYV;
                        }                
 -?[0-9]+          {
                    yylval.iValue = atoi(yytext);
                    return INTEGER;
                 }                
-[\"][a-zA-Z0-9 ,]+[\"] { char*s= yytext+1;
+[\"][a-zA-Z0-9 ,]*[\"] { char*s= yytext+1;
                        s[strlen(s)-1]='\0';
                        yylval.charValue = calloc(100, sizeof(char));
                        yylval.charValue = s;
